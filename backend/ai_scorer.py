@@ -1,36 +1,46 @@
 from transformers import pipeline
 import torch
 
+# Force GPU usage if available
+device = 0 if torch.cuda.is_available() else -1
+print(f"Using device: {'GPU' if device == 0 else 'CPU'}")
+
 # Try phishing-specific models, fallback to toxicity detection
 try:
     # Option 1: Phishing detection model
     classifier = pipeline(
         "text-classification",
         model="ealvaradob/bert-finetuned-phishing",
-        device=0 if torch.cuda.is_available() else -1
+        device=device
     )
     MODEL_TYPE = "phishing"
+    print(f"Loaded phishing model on {'GPU' if device == 0 else 'CPU'}")
 except:
     try:
         # Option 2: Toxicity detection (good proxy for phishing)
         classifier = pipeline(
             "text-classification",
             model="unitary/toxic-bert",
-            device=0 if torch.cuda.is_available() else -1
+            device=device
         )
         MODEL_TYPE = "toxicity"
+        print(f"Loaded toxicity model on {'GPU' if device == 0 else 'CPU'}")
     except:
         # Option 3: Fallback to sentiment
         classifier = pipeline(
             "sentiment-analysis",
             model="cardiffnlp/twitter-roberta-base-sentiment-latest",
-            device=0 if torch.cuda.is_available() else -1
+            device=device
         )
         MODEL_TYPE = "sentiment"
+        print(f"Loaded sentiment model on {'GPU' if device == 0 else 'CPU'}")
 
 def ai_risk_score(text: str) -> dict:
     """Use AI model to score phishing risk"""
     try:
+        print(f"GPU available: {torch.cuda.is_available()}")
+        if torch.cuda.is_available():
+            print(f"Model device: {classifier.device}")
         result = classifier(text)
         label = result[0]['label']
         confidence = result[0]['score']
