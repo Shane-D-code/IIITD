@@ -8,3 +8,5 @@ async function handleSearch() {
     console.log("Sanitized results:", result);
     document.getElementById("output").textContent = JSON.stringify(result, null, 2);
 }
+
+document.getElementById("searchBtn").addEventListener("click", handleSearch);
